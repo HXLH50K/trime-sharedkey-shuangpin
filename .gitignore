@@ -1,0 +1,44 @@
+# 用户词典和缓存
+*.userdb/
+build/
+
+# 临时文件
+*.log
+*.tmp
+*~
+
+# 第三方依赖（不上传到repo）
+moqi.yaml
+moqi.extended.dict.yaml
+moqi_big.extended.dict.yaml
+moqi_big.schema.yaml
+reverse_moqima.dict.yaml
+cn_dicts_moqi/
+cn_dicts_common/
+custom_phrase/
+opencc/
+emoji.schema.yaml
+emoji.dict.yaml
+easy_en.schema.yaml
+easy_en.dict.yaml
+jp_sela.schema.yaml
+jp_sela.dict.yaml
+cangjie5.dict.yaml
+radical_flypy.dict.yaml
+symbols_caps_v.yaml
+
+# sbxlm库
+lua/sbxlm/
+
+# 通用Lua脚本
+lua/date_translator.lua
+lua/lunar.lua
+lua/unicode.lua
+lua/number_translator.lua
+lua/calculator.lua
+lua/pro_comment_format.lua
+lua/is_in_user_dict.lua
+
+# Rime自动生成文件
+default.yaml
+default.custom.yaml

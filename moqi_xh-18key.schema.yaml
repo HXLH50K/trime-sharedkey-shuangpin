@@ -1,0 +1,407 @@
+# Rime schema
+# encoding: utf-8
+# moqi_xh-18key: 墨奇辅助码 鹤拼版 - Android 18键专用
+# 基于 moqi_xh-trime.schema.yaml，针对18键共键布局优化
+# 共键双拼辅助码方案：可选1位辅助码(无引导符) + 引导符支持2位辅助码
+
+schema:
+  schema_id: moqi_xh-18key
+  name: MQ+XH 18键
+  version: "0.1.0"
+  author:
+    - gaboolic (原墨奇码)
+    - hxlh50k (18键适配)
+  description: |
+    墨奇辅助码 鹤拼版 - Android 18键专用
+    共键双拼辅助码方案：
+    - 无引导符：纯音码(2位) 或 三码(音码2+辅助码1)
+    - 有引导符[：音码2+辅助码2(用户可主动分词)
+  dependencies:
+    - emoji
+    - easy_en
+    - jp_sela
+    - moqi_big
+
+# ========== Switches ==========
+switches:
+  - name: ascii_mode
+    states: [ 中文, 西文 ]
+  - name: full_shape
+    states: [ 半角, 全角 ]
+  - name: traditionalization
+    states: [ 简, 繁 ]
+  - name: emoji
+    states: [ 💀, 😄 ]
+  - name: big_char_set
+    states: [ 大字集, 小字集 ]
+  - name: mars
+    reset: 0
+    states: [ 地, 煋 ]
+  - name: ascii_punct
+    states: [ 。，, ．， ]
+
+# ========== Menu ==========
+menu:
+  page_size: 9
+
+# ========== Engine (18键共键双拼辅助码) ==========
+engine:
+  processors:
+    # - lua_processor@*sharedkey_shuangpin_auxcode_processor  # 共键双拼辅助码处理器, 有BUG
+    - lua_processor@*sharedkey_shuangpin_precise_input_processor  # 精确输入处理器（处理大写字母精确输入）
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - affix_segmentor@emojis
+    - affix_segmentor@easy_en_simp
+    - affix_segmentor@jp_sela
+    - fallback_segmentor
+  translators:
+    # lua翻译器
+    - lua_translator@*date_translator
+    - lua_translator@*lunar
+    - lua_translator@*unicode
+    - lua_translator@*number_translator
+    - lua_translator@*calculator
+    - punct_translator
+    # 码表翻译器
+    - table_translator@custom_phrase_3_code
+    - table_translator@custom_phrase_kf
+    - table_translator@custom_phrase_mqzg
+    - table_translator@big_char_set
+    - table_translator@emojis
+    - table_translator@easy_en_simp
+    - table_translator@jp_sela
+    # 脚本翻译器
+    - script_translator
+    - script_translator@user_dict_set
+  filters:
+    # - lua_filter@*sharedkey_shuangpin_auxcode_filter  # 共键双拼辅助码过滤器
+    - lua_filter@*pro_comment_format
+    - lua_filter@*is_in_user_dict
+    - reverse_lookup_filter@reverse_lookup
+    - simplifier@emoji                        # Emoji过滤器
+    - simplifier@chinese_english
+    - simplifier@big_char_set
+    - simplifier@traditionalize
+    - simplifier@mars
+    - lua_filter@*sharedkey_shuangpin_precise_input_filter        # 精确输入过滤器（18键共键）
+    - uniquifier                              # 去重（放在最后）
+
+# 引入基础配置
+__include: moqi.yaml:/phrase
+__include: moqi.yaml:/opencc_config
+__include: moqi.yaml:/big_char_and_user_dict
+
+# ========== Emoji 配置 ==========
+# 从 moqi.yaml 引入 emoji simplifier 配置
+emoji:
+  __include: moqi.yaml:/opencc_config/emoji
+
+# ========== 标点配置（18键专用） ==========
+# 禁用 / 的候选，直接输出 /
+punctuator:
+  full_shape:
+    __include: default:/punctuator/full_shape
+  half_shape:
+    __include: default:/punctuator/half_shape
+    "/": "/"   # 直接输出 /，不显示候选
+
+# ========== 18键专用 Speller 配置 ==========
+speller:
+  max_code_length: 6
+  auto_select: false
+  auto_select_pattern: ^[a-z]+/|^[a-df-zA-DF-Z]\w{3}|^e\w{4}|;[a-z]
+  # alphabet 包含大写字母用于精确输入，包含 [ 用于形码引导
+  alphabet: zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA[/|'
+  initials: zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA
+  delimiter: " '"
+  
+  algebra:
+    # ========== 共键双拼辅助码处理规则 ==========
+    #
+    # 方案设计：
+    # - 无引导符：纯音码(2位) 或 三码(音码2+辅助码1)
+    # - 有引导符[：音码2+辅助码2，用户可主动分词
+    #
+    # 词典格式: 时 ui[oc
+    # 派生编码:
+    #   - ui      : 纯双拼
+    #   - uio     : 三码，音码ui + 辅助码o（无引导符）
+    #   - ui[o    : 引导符+1位辅助码（支持手动分词）
+    #   - ui[oc   : 引导符+2位辅助码
+    
+    # === 纯双拼（无辅助码） ===
+    - derive|^(.+)[[](\w)(\w)$|$1|              # 纯双拼
+    
+    # === 三码无引导符（音码2+辅助码1） ===
+    - derive|^(..)[[](.)(\w)$|$1$2|             # 音码+第1位辅助码（无引导符）
+    
+    # === 有引导符时支持1-2位辅助码 ===
+    # 用户可主动输入分词符：sy[z'xi (1位辅助码+分词符)
+    - derive|^(.+)[[](\w)(\w)$|$1[$2|           # 双拼+[+1位辅助码（支持手动分词）
+    - derive|^(.+)[[](\w)(\w)$|$1[$2$3|         # 双拼+[+2位辅助码（完整四码）
+    
+    # ========== 飞键规则（18键已禁用，与共键模糊冲突）==========
+    # 原版飞键规则会与18键共键模糊冲突，例如：
+    # - derive/^ww/wi/ 会导致 wi 优先匹配 ww 而非 wo
+    # 可以开启, 但是输入体验更糟
+    # 以下规则已禁用：
+    # - derive/^([y])j/$1f/
+    # - derive/^qx/qw/
+    # - derive/^xq/xo/
+    # - derive/^qq/qo/
+    # - derive/^ww/wi/
+    # - derive/^j([a-twyz])/f$1/
+    # - derive/^([y])h/$1g/
+    # - derive/^([rsgv])c/$1n/
+    
+    # ========== 18键共键模糊（音码部分：声母位置） ==========
+    # WE 共键
+    - derive/^w([a-z])/e$1/
+    - derive/^e([a-z])/w$1/
+    # RT 共键
+    - derive/^r([a-z])/t$1/
+    - derive/^t([a-z])/r$1/
+    # IO 共键
+    - derive/^i([a-z])/o$1/
+    - derive/^o([a-z])/i$1/
+    # SD 共键
+    - derive/^s([a-z])/d$1/
+    - derive/^d([a-z])/s$1/
+    # FG 共键
+    - derive/^f([a-z])/g$1/
+    - derive/^g([a-z])/f$1/
+    # JK 共键
+    - derive/^j([a-z])/k$1/
+    - derive/^k([a-z])/j$1/
+    # XC 共键
+    - derive/^x([a-z])/c$1/
+    - derive/^c([a-z])/x$1/
+    # BN 共键
+    - derive/^b([a-z])/n$1/
+    - derive/^n([a-z])/b$1/
+    
+    # ========== 18键共键模糊（音码部分：韵母位置） ==========
+    # 匹配第2位字母（韵母），后面可能是 $ 或 [辅助码
+    # WE 共键
+    - derive/^([a-z])w([^a-z]|$)/$1e$2/
+    - derive/^([a-z])e([^a-z]|$)/$1w$2/
+    # RT 共键
+    - derive/^([a-z])r([^a-z]|$)/$1t$2/
+    - derive/^([a-z])t([^a-z]|$)/$1r$2/
+    # IO 共键
+    - derive/^([a-z])i([^a-z]|$)/$1o$2/
+    - derive/^([a-z])o([^a-z]|$)/$1i$2/
+    # SD 共键
+    - derive/^([a-z])s([^a-z]|$)/$1d$2/
+    - derive/^([a-z])d([^a-z]|$)/$1s$2/
+    # FG 共键
+    - derive/^([a-z])f([^a-z]|$)/$1g$2/
+    - derive/^([a-z])g([^a-z]|$)/$1f$2/
+    # JK 共键
+    - derive/^([a-z])j([^a-z]|$)/$1k$2/
+    - derive/^([a-z])k([^a-z]|$)/$1j$2/
+    # XC 共键
+    - derive/^([a-z])x([^a-z]|$)/$1c$2/
+    - derive/^([a-z])c([^a-z]|$)/$1x$2/
+    # BN 共键
+    - derive/^([a-z])b([^a-z]|$)/$1n$2/
+    - derive/^([a-z])n([^a-z]|$)/$1b$2/
+    
+    # ========== 18键共键模糊（形码部分：第1位） ==========
+    # 形码以 [ 引导，需要对 [后的字符应用模糊
+    # WE 共键
+    - derive/\[w/[e/
+    - derive/\[e/[w/
+    # RT 共键
+    - derive/\[r/[t/
+    - derive/\[t/[r/
+    # IO 共键
+    - derive/\[i/[o/
+    - derive/\[o/[i/
+    # SD 共键
+    - derive/\[s/[d/
+    - derive/\[d/[s/
+    # FG 共键
+    - derive/\[f/[g/
+    - derive/\[g/[f/
+    # JK 共键
+    - derive/\[j/[k/
+    - derive/\[k/[j/
+    # XC 共键
+    - derive/\[x/[c/
+    - derive/\[c/[x/
+    # BN 共键
+    - derive/\[b/[n/
+    - derive/\[n/[b/
+    
+    # ========== 18键共键模糊（辅助码部分：第2位，有引导符） ==========
+    # WE 共键
+    - derive/\[(\w)w$/[$1e/
+    - derive/\[(\w)e$/[$1w/
+    # RT 共键
+    - derive/\[(\w)r$/[$1t/
+    - derive/\[(\w)t$/[$1r/
+    # IO 共键
+    - derive/\[(\w)i$/[$1o/
+    - derive/\[(\w)o$/[$1i/
+    # SD 共键
+    - derive/\[(\w)s$/[$1d/
+    - derive/\[(\w)d$/[$1s/
+    # FG 共键
+    - derive/\[(\w)f$/[$1g/
+    - derive/\[(\w)g$/[$1f/
+    # JK 共键
+    - derive/\[(\w)j$/[$1k/
+    - derive/\[(\w)k$/[$1j/
+    # XC 共键
+    - derive/\[(\w)x$/[$1c/
+    - derive/\[(\w)c$/[$1x/
+    # BN 共键
+    - derive/\[(\w)b$/[$1n/
+    - derive/\[(\w)n$/[$1b/
+    
+    # ========== 18键共键模糊（三码：无引导符辅助码） ==========
+    # 三码格式：音码2位 + 辅助码1位（无引导符）
+    # 例如：uio 表示 音码ui + 辅助码o
+    # 需要对第3位应用共键模糊
+    # WE 共键
+    - derive/^(..)w$/$1e/
+    - derive/^(..)e$/$1w/
+    # RT 共键
+    - derive/^(..)r$/$1t/
+    - derive/^(..)t$/$1r/
+    # IO 共键
+    - derive/^(..)i$/$1o/
+    - derive/^(..)o$/$1i/
+    # SD 共键
+    - derive/^(..)s$/$1d/
+    - derive/^(..)d$/$1s/
+    # FG 共键
+    - derive/^(..)f$/$1g/
+    - derive/^(..)g$/$1f/
+    # JK 共键
+    - derive/^(..)j$/$1k/
+    - derive/^(..)k$/$1j/
+    # XC 共键
+    - derive/^(..)x$/$1c/
+    - derive/^(..)c$/$1x/
+    # BN 共键
+    - derive/^(..)b$/$1n/
+    - derive/^(..)n$/$1b/
+
+# ========== Translator 配置 ==========
+translator:
+  dictionary: moqi.extended
+  initial_quality: 10000
+  enable_completion: false
+  spelling_hints: 1
+  comment_format:
+    - "xform/(^|[ '])[^[]+[[]/$1/"   # 编码提示只显示辅助码部分
+  enable_user_dict: true
+
+# ========== 快捷键配置（手机版简化） ==========
+key_binder:
+  import_preset: default
+  bindings:
+    # 分号选2
+    - { when: has_menu, accept: semicolon, send: 2 }
+
+# ========== Recognizer 配置 ==========
+recognizer:
+  patterns:
+    punct:            # 禁用 / 开头的符号输入
+    reverse_moqima:   # 禁用 amq 墨奇反查
+    radical_flypy:    # 禁用 az 部件组字
+    reverse_stroke:   # 禁用 ab 笔画反查
+    reverse_cj:       # 禁用 arj 仓颉反查
+    reverse_zrlf:     # 禁用 alf 自然两分
+    add_user_dict:    # 禁用 ac 自造词
+    emojis: "^ae[a-z]*'?$"      # 启用 ae Emoji
+    easy_en_simp: "^aw[a-z]*"   # 启用 aw 英文单词
+    jp_sela: "^aj[a-z]*"        # 启用 aj 日语
+
+# 语言模型
+__include: moqi:/octagram/enable_for_sentence
+
+# 3码出简让全
+custom_phrase_3_code:
+  dictionary: ""
+  user_dict: custom_phrase/custom_phrase_3_code
+  db_class: stabledb
+  enable_sentence: false
+  enable_completion: false
+  initial_quality: 1
+
+# ========== 18键精确输入配置 ==========
+# 供 Lua 脚本读取
+precise_input:
+  # 共键对配置
+  fuzzy_pairs:
+    - "we"
+    - "rt"
+    - "io"
+    - "sd"
+    - "fg"
+    - "jk"
+    - "xc"
+    - "bn"
+
+# ========== 共键双拼辅助码配置 ==========
+# 供 Lua 脚本读取
+sharedkey_shuangpin_auxcode:
+  # 是否启用
+  enabled: true
+  
+  # 辅助码引导符
+  auxcode_bracket: "["
+  
+  # 三码模式（无引导符时，第3位作为1位辅助码）
+  three_code_enabled: true
+  
+  # 辅助码最大长度
+  max_auxcode_length: 2
+
+# ========== 引导前缀配置（aj、aw、ae） ==========
+# Emoji 输入
+emojis:
+  tag: emojis
+  dictionary: emoji
+  enable_completion: true
+  prefix: "ae"
+  tips: " Emoji"
+
+# 英文单词输入
+easy_en_simp:
+  tag: easy_en_simp
+  dictionary: easy_en
+  enable_completion: true
+  enable_sentence: false
+  prefix: "aw"
+  tips: "英文单词（可去元音）"
+  spelling_hints: 9
+  comment_format:
+    - xform/^.+$//
+
+# 日语输入
+jp_sela:
+  tag: jp_sela
+  dictionary: jp_sela
+  enable_completion: true
+  enable_sentence: false
+  prefix: "aj"
+  tips: "日语"
+  spelling_hints: 9
+  comment_format:
+    - xform/^.+$//

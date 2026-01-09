@@ -132,7 +132,7 @@ init_deploy_android.bat
 - 右滑切换配色
 - 上滑切换方案
 
-## 
+## 参考与致谢
 - [gaboolic](https://github.com/gaboolic) - 墨奇音形
 - Rime社区
 - [手心输入法](https://www.xinshuru.com)

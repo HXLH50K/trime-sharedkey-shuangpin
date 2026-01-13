@@ -145,7 +145,7 @@ speller:
     - derive|^(.+)[[](\w)(\w)$|$1|              # 纯双拼
     
     # === 三码无引导符（音码2+辅助码1） ===
-    - derive|^(..)[[](.)(\w)$|$1$2|             # 音码+第1位辅助码（无引导符）
+    - derive|^(.+)[[](.)(\w)$|$1$2|             # 音码+第1位辅助码（无引导符）
     
     # === 有引导符时支持1-2位辅助码 ===
     # 用户可主动输入分词符：sy[z'xi (1位辅助码+分词符)
@@ -304,6 +304,7 @@ speller:
 # ========== Translator 配置 ==========
 translator:
   dictionary: moqi.extended
+  prism: moqi_xh-18key
   initial_quality: 10000
   enable_completion: false
   spelling_hints: 1

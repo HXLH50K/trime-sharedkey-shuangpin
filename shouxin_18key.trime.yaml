@@ -779,7 +779,7 @@ preset_keyboards:
       - {click: key_backspace, swipe_up: key_control_backspace, width: 14.6}
       # 第4行：功能键
       - {click: to_symbol_liquid_keyboard, width: 15}
-      - {click: to_number_keyboard, width: 12}
+      - {click: to_number_keyboard, long_click: VoiceAssist, width: 12}
       - {click: key_comma_cn, long_click: ",", swipe_up: key_ascii_comma, width: 10}
       - {click: key_space, width: 26}
       - {click: key_period_cn, long_click: ".", swipe_up: key_ascii_period, width: 10}
@@ -830,7 +830,7 @@ preset_keyboards:
       - {click: key_backspace, swipe_up: key_control_backspace, width: 15}
       # 第4行：功能键
       - {click: to_symbol_liquid_keyboard, width: 15}
-      - {click: to_number_keyboard, width: 12}
+      - {click: to_number_keyboard, long_click: VoiceAssist, width: 12}
       - {click: key_comma_en, width: 10}
       - {click: key_space, width: 26}
       - {click: key_period_en, width: 10}
@@ -872,8 +872,8 @@ preset_keyboards:
     height: 59
     lock: false
     keys:
-      # Row 1: [空13.33][↑13.33][空13.33] | 开头 | 粘贴 | 退格
-      - {width: 13.33}
+      # Row 1: [返回13.33][↑13.33][空13.33] | 开头 | 粘贴 | 退格
+      - {click: to_lastlock_keyboard, width: 13.33}
       - {click: Up, width: 13.33}
       - {width: 13.33}
       - {click: doc_start}
@@ -885,7 +885,7 @@ preset_keyboards:
       - {click: Right, width: 13.33}
       - {click: Home}
       - {click: copy}
-      - {click: liquid_keyboard_clipboard}
+      - {click: liquid_keyboard_clipboard_from_edit}
       # Row 3: [空13.33][↓13.33][空13.33] | 句尾 | 剪切 | 空格
       - {width: 13.33}
       - {click: Down, width: 13.33}
@@ -899,12 +899,6 @@ preset_keyboards:
       - {click: select_all}
       - {click: key_return}
 
-# ==================== 预设按键基类 ====================
-# 返回键基类
-_key_back_base: &key_back_base
-  label: "↩"
-  send: Eisu_toggle
-
 # ==================== 预设按键 ====================
 preset_keys:
   # ========== 系统功能键 ==========
@@ -915,6 +909,10 @@ preset_keys:
   VoidSymbol:
     label: ""
 
+  VoiceAssist:
+    label: "⚲"
+    send: VOICE_ASSIST
+
   # ========== 键盘切换键 ==========
   to_number_keyboard:
     label: "123"
@@ -923,7 +921,7 @@ preset_keys:
     functional: true
   # 智能返回键：返回上一个 lock=true 的键盘
   to_lastlock_keyboard:
-    label: "↩"
+    label: "◁"
     send: Eisu_toggle
     select: .last_lock
   # 编辑键盘按钮
@@ -1081,7 +1079,7 @@ preset_keys:
     label: "␣"
     send: space
   key_return:
-    label: "⏎"
+    label: "⤶"
     functional: true
     send: Return
 
@@ -1096,7 +1094,7 @@ preset_keys:
     send: Shift_L
     shift_lock: long
   key_return_en:
-    label: "⏎"
+    label: "⤶"
     functional: true
     send: Return
 
@@ -1111,29 +1109,30 @@ preset_keys:
     send: function
     command: liquid_keyboard
     option: "剪贴"
+  liquid_keyboard_clipboard_from_edit:
+    label: "⎘"
+    send: function
+    command: liquid_keyboard
+    option: "剪贴"
   liquid_keyboard_exit:
-    label: " ↩ "
+    label: " ◁ "
     send: function
     command: liquid_keyboard
     option: "-1"
-    width: 25
   # 液态键盘固定栏专用按键（与edit_keyboard对齐，使用半角空格填充）
   space1:
     functional: false
     label: " ␣ "
     repeatable: false
     send: space
-    width: 25
   Return1:
-    label: " ⏎ "
+    label: " \u200A⤶\u200A "
     send: Return
-    width: 25
   BackSpace1:
     functional: false
     label: " ⌫ "
     send: BackSpace
     repeatable: true
-    width: 25
 
   # ========== 编辑键盘按键 ==========
   Left:
@@ -1382,16 +1381,6 @@ tool_bar:
     - {action: to_edit_keyboard, foreground: {style: "ic@cursor_text"}}
     # 键盘按钮：返回上一个lock键盘
     - {action: to_lastlock_keyboard, foreground: {style: "ic@keyboard"}}
-    - {action: F4, foreground: {style: "ic@settings"}}
-  emoji_button:
-    action: liquid_keyboard_emoji
-    foreground: {style: "ic@emoticon"}
-  clipboard_button:
-    action: liquid_keyboard_clipboard
-    foreground: {style: "ic@clipboard"}
-  hide_button:
-    action: Hide
-    foreground: {style: "ic@keyboard_close"}
 
 # 候选窗口配置
 window:

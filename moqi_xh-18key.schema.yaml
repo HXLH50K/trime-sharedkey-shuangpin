@@ -116,6 +116,7 @@ punctuator:
   half_shape:
     __include: default:/punctuator/half_shape
     "/": "/"   # 直接输出 /，不显示候选
+    "~": "~"   # 直接输出 ~，不显示候选
 
 # ========== 18键专用 Speller 配置 ==========
 speller:

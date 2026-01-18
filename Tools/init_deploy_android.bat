@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 REM ========================================
 REM 初次部署 Rime 配置到 Android 设备
 REM 基于 moqi_xh-18key.schema.yaml 和 shouxin_18key.trime.yaml 的完整依赖分析

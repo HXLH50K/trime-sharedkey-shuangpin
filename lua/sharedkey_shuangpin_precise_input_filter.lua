@@ -25,7 +25,7 @@ local default_fuzzy_pairs = {
 }
 
 -- 配置
-local MAX_CANDIDATES = 100  -- 只处理前N个候选
+local MAX_CANDIDATES = 50  -- 只处理前N个候选
 local fuzzy_pairs = default_fuzzy_pairs
 local reversedb = nil
 local lookup_cache = {}  -- 反查缓存

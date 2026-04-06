@@ -776,7 +776,7 @@ preset_keyboards:
       - {click: key_V, long_click: "8", popup: ["8", "v", "V"], swipe_up: "8", width: 12.3}
       - {click: key_BN, long_click: "9", popup: ["9", "b", "N", "n", "B"], swipe_up: "9", swipe_left: B, swipe_right: N, width: 16.9}
       - {click: key_M, long_click: "0", popup: ["0", "m", "M"], swipe_up: "0", width: 12.3}
-      - {click: key_backspace, swipe_up: key_control_backspace, width: 14.6}
+      - {click: key_backspace, swipe_up: key_control_backspace, swipe_down: key_control_z, width: 14.6}
       # 第4行：功能键
       - {click: to_symbol_liquid_keyboard, width: 15}
       - {click: to_number_keyboard, long_click: VoiceAssist, width: 12}
@@ -827,7 +827,7 @@ preset_keyboards:
       - {click: b, label: b, long_click: ":", popup: [":", "b", "B"], swipe_up: ":", swipe_down: B}
       - {click: n, label: n, long_click: ";", popup: [";", "n", "N"], swipe_up: ";", swipe_down: N}
       - {click: m, label: m, long_click: "?", popup: ["?", "m", "M"], swipe_up: "?", swipe_down: M}
-      - {click: key_backspace, swipe_up: key_control_backspace, width: 15}
+      - {click: key_backspace, swipe_up: key_control_backspace, swipe_down: key_control_z, width: 15}
       # 第4行：功能键
       - {click: to_symbol_liquid_keyboard, width: 15}
       - {click: to_number_keyboard, long_click: VoiceAssist, width: 12}
@@ -846,7 +846,7 @@ preset_keyboards:
       - {click: "1", label: "1"}
       - {click: "2", label: "2"}
       - {click: "3", label: "3"}
-      - {click: key_backspace, swipe_up: key_control_backspace}
+      - {click: key_backspace, swipe_up: key_control_backspace, swipe_down: key_control_z}
       - {click: "-", label: "-"}
       - {click: "4", label: "4"}
       - {click: "5", label: "5"}
@@ -878,7 +878,7 @@ preset_keyboards:
       - {width: 13.33}
       - {click: doc_start}
       - {click: paste}
-      - {click: key_backspace, swipe_up: key_control_backspace}
+      - {click: key_backspace, swipe_up: key_control_backspace, swipe_down: key_control_z}
       # Row 2: [←13.33][选择13.33][→13.33] | 句首 | 复制 | 剪贴板
       - {click: Left, width: 13.33}
       - {click: select_mode, width: 13.33}
@@ -1024,6 +1024,11 @@ preset_keys:
     functional: true
     send: "Control+BackSpace"
     repeatable: true
+  key_control_z:
+    label: "⌫"
+    functional: true
+    send: "Control+z"
+    repeatable: false
 
   # ========== 第四行：功能键 ==========
   # ASCII逗号和句号（使用commit直接提交，绕过Rime处理）
@@ -1209,7 +1214,7 @@ liquid_keyboard:
   row_land: 5
   key_height: 40
   key_height_land: 40
-  single_width: 60
+  single_width: 58
   vertical_gap: 0
   margin_x: 3
   fixed_key_bar:
@@ -1249,9 +1254,10 @@ liquid_keyboard:
       - "～"
       - "·"
       - "‥"
+      - "->"
       # 成对符号（输入一对，需手动移动光标）
       - "“”"
-      - "''"
+      - "‘’"
       - "【】"
       - "《》"
       - "（）"
@@ -1260,11 +1266,27 @@ liquid_keyboard:
       - "〈〉"
       - "〔〕"
       - "〖〗"
-      # 单个引号（分开输入）
+      # 单个符号
       - "“"
       - "”"
-      - "'"
-      - "'"
+      - "‘"
+      - "’"
+      - "【"
+      - "】"
+      - "《"
+      - "》"
+      - "（"
+      - "）"
+      - "「"
+      - "」"
+      - "『"
+      - "』"
+      - "〈"
+      - "〉"
+      - "〔"
+      - "〕"
+      - "〖"
+      - "〗"
   # 英文标点：常用标点 + 成对符号
   en_punctuation:
     name: 英文
@@ -1292,6 +1314,7 @@ liquid_keyboard:
       - "%"
       - "&"
       - "_"
+      - "->"
       # 成对符号
       - "''"
       - '""'
@@ -1299,6 +1322,17 @@ liquid_keyboard:
       - "[]"
       - "{}"
       - "<>"
+      # 单个符号
+      - "'"
+      - '"'
+      - "("
+      - ")"
+      - "["
+      - "]"
+      - "{"
+      - "}"
+      - "<"
+      - ">"
   math:
     name: 数学
     type: SINGLE

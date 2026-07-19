@@ -9,7 +9,7 @@
 schema:
   schema_id: moqi_xh-18key
   name: MQ+XH 18键
-  version: "0.2.0"
+  version: "0.3.0"
   author:
     - gaboolic (原墨奇码)
     - hxlh50k (18键适配)
@@ -102,9 +102,8 @@ punctuator:
 
 # ========== 18键专用 Speller 配置 ==========
 speller:
-  max_code_length: 6
   auto_select: false
-  auto_select_pattern: ^[a-z]+/|^[a-df-zA-DF-Z]\w{3}|^e\w{4}|;[a-z]
+  auto_select_pattern: ^[a-z]+/|;[a-z]
   # alphabet 包含大写字母用于精确输入，包含 [ 用于形码引导
   alphabet: zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA[/|'
   initials: zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA

@@ -1,5 +1,5 @@
 -- sharedkey_shuangpin_precise_input_processor.lua
--- 共键双拼精确输入处理器 v2：支持18键形码引导键方案
+-- 共键双拼精确输入处理器 v3：支持18键形码引导键方案
 --
 -- 功能：
 -- 1. 拦截大写字母输入（A-Z），记录为精确输入位置，转换为小写发送
@@ -15,6 +15,16 @@
 -- 参考：lua/sbxlm/upper_case.lua
 
 local rime = require "sbxlm.lib"
+
+local function clear_input_state(context)
+    context:set_property("precise_input_map", "")
+    context:set_property("auxiliary_positions", "")
+end
+
+local function init(env)
+    local context = env.engine.context
+    env.commit_connection = context.commit_notifier:connect(clear_input_state)
+end
 
 local function processor(key, env)
     -- 只处理按键按下事件，忽略释放、Alt、Ctrl、Caps
@@ -121,8 +131,7 @@ local function processor(key, env)
     -- 检查是否是 Escape (0xff1b = 65307)
     if keycode == 65307 or keycode == 0xff1b then
         -- 清空所有记录
-        context:set_property("precise_input_map", "")
-        context:set_property("auxiliary_positions", "")
+        clear_input_state(context)
         return rime.process_results.kNoop
     end
     
@@ -136,4 +145,10 @@ local function processor(key, env)
     return rime.process_results.kNoop
 end
 
-return processor
+local function fini(env)
+    if env.commit_connection then
+        env.commit_connection:disconnect()
+    end
+end
+
+return { init = init, func = processor, fini = fini }

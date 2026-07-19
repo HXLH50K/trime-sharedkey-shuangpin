@@ -744,7 +744,7 @@ preset_keyboards:
     author: "hxlh50k"
     ascii_mode: 0
     ascii_keyboard: qwerty26 # 使用26键作为ASCII输入法。Not Work in Trime 3.3.8
-    reset_ascii_mode: false
+    reset_ascii_mode: true
     width: 12.3
     height: 59
     lock: true
@@ -791,6 +791,7 @@ preset_keyboards:
     name: "全键盘"
     author: "hxlh50k"
     ascii_mode: 1
+    reset_ascii_mode: true
     width: 10
     height: 59
     lock: true

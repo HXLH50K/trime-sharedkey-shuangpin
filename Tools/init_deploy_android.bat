@@ -10,6 +10,7 @@ setlocal EnableDelayedExpansion
 pushd "%~dp0\.." || (echo [ERROR] Cannot cd to repo root.& exit /b 1)
 
 set "RIME_DIR=/sdcard/rime"
+set "SYNC_DIR=/sdcard/com.hxlh/Rime"
 set "FAILED=0"
 
 echo ========================================
@@ -31,6 +32,9 @@ if "!PATH_KIND!"=="FILE" (
     goto :fail
 )
 call :adb_mkdir "%RIME_DIR%"
+echo Initializing installation.yaml from the custom device name...
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0init_installation.ps1" -Platform Android -RimeDir "%RIME_DIR%" -SyncDir "!SYNC_DIR!"
+if errorlevel 1 goto :fail
 echo   done.
 echo.
 

@@ -28,7 +28,9 @@
 ### 前置要求
 
 - Trime v3.3.8+
-- ADB (可选)
+- 自动化部署：Windows、Windows PowerShell 5.1+，以及已加入 `PATH` 的 ADB
+- 手机开启 USB 调试并授权电脑；运行脚本时只连接一台目标设备
+- 手动复制文件不需要 ADB 或 PowerShell
 
 ### 安装步骤
 
@@ -48,20 +50,41 @@ git clone https://github.com/hxlh50k/trime-sharedkey-shuangpin
 
 #### 2. 准备文件结构
 
-将两个 repo 中内容合并到一个文件夹
+将两个 repo 中内容合并到一个文件夹，先放入墨奇方案，再用本项目文件覆盖同名文件。保留 `Tools` 和 `lua` 的目录结构，`Tools/init_deploy_android.bat` 与 `Tools/init_installation.ps1` 必须放在一起。
 
 #### 3. 部署到手机
 
 **使用自动化脚本**（推荐）
 
-```bash
-cd Tools
+**运行前必须检查并修改 [Tools/init_deploy_android.bat](Tools/init_deploy_android.bat) 顶部的两个目录变量：**
 
-# 执行部署
-init_deploy_android.bat
+```bat
+set "RIME_DIR=/sdcard/rime"
+set "SYNC_DIR=/sdcard/com.hxlh/Rime"
 ```
 
-如果你没有 adb，参考此 bat 中的文件手动复制，或者全复制进去也行。
+- `RIME_DIR`：手机上 Trime 实际使用的用户配置目录。默认 `/sdcard/rime`，请与 Trime 设置保持一致；脚本当前要求此路径仅包含英文字母、数字、`_`、`.`、`-` 和 `/`。
+- `SYNC_DIR`：手机上的 Rime 同步目录。`/sdcard/com.hxlh/Rime` 是作者的个人设置，**不要直接照搬**；可改为 `/sdcard/rime/sync`，或你自己的同步软件使用的、Trime 可读写的目录。
+- 两个变量都填写 **Android 端绝对路径**，不是电脑下载目录。Windows 小狼毫的同步路径需单独设置，不能使用 Android 路径。
+- 初始化脚本会覆盖同名配置，并将 `SYNC_DIR` 写入安装信息、覆盖旧同步路径；不会迁移旧目录数据，也不会替你配置跨设备同步。已有同步数据请先备份。
+
+先在手机设置中确认设备/蓝牙名称；此名称会写入 `name` 和 `installation_id`，用于区分同步设备。脚本优先读取自定义蓝牙名称，过滤与产品型号、市场名称相同的值；如果只有默认型号可读，会停止部署。不同设备请使用不同名称，改名不会自动迁移旧的设备同步子目录。
+
+可先在合并后的项目根目录只读预览；下面的路径应替换为你刚设置的值：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Tools\init_installation.ps1 -Platform Android -RimeDir "/sdcard/rime" -SyncDir "/sdcard/rime/sync" -WhatIf
+```
+
+确认输出的设备名称及来源正确后执行部署：
+
+```powershell
+.\Tools\init_deploy_android.bat
+```
+
+脚本会创建或补齐手机配置目录中的 `installation.yaml`，包含发行版信息、安装时间、`name`、`installation_id` 和 `sync_dir`；保留已有非空版本与安装时间。缺失版本使用 Trime `v3.3.8-0-gf3f5c923` / librime `1.15.0` 的补缺默认值，不是自动探测结果；可通过辅助脚本的 `-DistributionVersion` / `-RimeVersion` 参数指定。
+
+没有 ADB 时，可按 BAT 的文件清单手动复制到 Trime 用户目录，再在 Trime 中部署。手动方式不会运行安装信息初始化；如需同步，请另外检查设备自身的 `installation.yaml` 中的 `name`、`installation_id` 和 `sync_dir`，不要复制别人的安装文件。
 
 #### 4. 启用方案
 
@@ -80,11 +103,13 @@ init_deploy_android.bat
 
 - `lua/sharedkey_shuangpin_precise_input_processor.lua` - 精确输入处理器
 - `lua/sharedkey_shuangpin_precise_input_filter.lua` - 精确输入过滤器
+- `lua/sharedkey_shuangpin_auxcode_processor.lua` - 辅助码处理器
+- `lua/sharedkey_shuangpin_auxcode_filter.lua` - 辅助码过滤器
 
 **部署脚本**:
 
 - `Tools/init_deploy_android.bat` - 完整部署
-- `Tools/deploy_android.bat` - 快速更新
+- `Tools/init_installation.ps1` - 安装信息初始化，由 BAT 调用，支持 `-WhatIf` 只读预览
 
 ### 依赖项（需单独下载）
 
